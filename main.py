@@ -8,7 +8,7 @@ import math
 class Game:
     def __init__(self):
         pygame.init()
-        self.display = (800, 600)
+        self.display = (1920, 1080)
         pygame.display.set_mode(self.display, DOUBLEBUF | OPENGL)
         
         # Set up the camera for an isometric-like view
@@ -45,7 +45,9 @@ class Game:
         self.camera_rotation = self.rotation_y
         self.is_turning = False
         self.turn_progress = 0
-        self.turn_speed = 360  # Degrees per second
+        self.base_turn_speed = 360  # Degrees per second
+        self.current_turn_speed = self.base_turn_speed
+        self.max_turn_speed = self.base_turn_speed * 3
 
     def load_texture(self, filename):
         texture_surface = pygame.image.load(filename)
@@ -111,9 +113,10 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_t and not self.is_turning:
-                    self.is_turning = True
-                    self.turn_progress = 0
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_t and not self.is_turning:
+                        self.is_turning = True
+                        self.turn_progress = 0
 
             keys = pygame.key.get_pressed()
             self.handle_keys(keys, dt)
@@ -149,13 +152,25 @@ class Game:
     def handle_keys(self, keys, dt):
         rotation_speed = 2
 
-        # Handle acceleration
-        target_speed = self.max_speed if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else self.base_speed
+        # Handle acceleration for both movement and turning
+        is_shift_pressed = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
+        target_speed = self.max_speed if is_shift_pressed else self.base_speed
+        target_turn_speed = self.max_turn_speed if is_shift_pressed else self.base_turn_speed
+
         speed_change = (self.max_speed - self.base_speed) * (dt / self.acceleration_time)
+        turn_speed_change = (self.max_turn_speed - self.base_turn_speed) * (dt / self.acceleration_time)
+
+        # Adjust current speed
         if self.current_speed < target_speed:
             self.current_speed = min(self.current_speed + speed_change, target_speed)
         elif self.current_speed > target_speed:
             self.current_speed = max(self.current_speed - speed_change, target_speed)
+
+        # Adjust current turn speed
+        if self.current_turn_speed < target_turn_speed:
+            self.current_turn_speed = min(self.current_turn_speed + turn_speed_change, target_turn_speed)
+        elif self.current_turn_speed > target_turn_speed:
+            self.current_turn_speed = max(self.current_turn_speed - turn_speed_change, target_turn_speed)
 
         if not self.is_turning:
             if keys[pygame.K_RIGHT]:
@@ -173,7 +188,7 @@ class Game:
 
         # Handle turning
         if self.is_turning:
-            self.turn_progress += self.turn_speed * dt
+            self.turn_progress += self.current_turn_speed * dt
             if self.turn_progress >= 180:
                 self.is_turning = False
                 self.rotation_y += 180
@@ -195,13 +210,13 @@ class Game:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         speed_units = "units/s"
-        self.render_text(f"Speed: {self.current_speed:.2f} {speed_units}", (10, self.display[1] - 60))
+        self.render_text(f"Speed: {self.current_speed:.2f} {speed_units}", (20, self.display[1] - 80))
 
         acceleration = (self.current_speed - self.base_speed) / (self.max_speed - self.base_speed) * 100
-        self.render_text(f"Acceleration: {acceleration:.0f}%", (10, self.display[1] - 100))
+        self.render_text(f"Acceleration: {acceleration:.0f}%", (20, self.display[1] - 130))
 
-        self.render_text(f"Base Speed: {self.base_speed:.2f} {speed_units}", (10, self.display[1] - 140))
-        self.render_text(f"Max Speed: {self.max_speed:.2f} {speed_units}", (10, self.display[1] - 180))
+        self.render_text(f"Base Speed: {self.base_speed:.2f} {speed_units}", (20, self.display[1] - 180))
+        self.render_text(f"Max Speed: {self.max_speed:.2f} {speed_units}", (20, self.display[1] - 230))
 
         self.render_speedometer()
 
@@ -227,16 +242,16 @@ class Game:
         glBindTexture(GL_TEXTURE_2D, texture_id)
         glEnable(GL_TEXTURE_2D)
         glBegin(GL_QUADS)
-        glTexCoord2f(0, 1); glVertex2f(position[0], position[1])
-        glTexCoord2f(1, 1); glVertex2f(position[0] + width, position[1])
-        glTexCoord2f(1, 0); glVertex2f(position[0] + width, position[1] + height)
-        glTexCoord2f(0, 0); glVertex2f(position[0], position[1] + height)
+        glTexCoord2f(0, 0); glVertex2f(position[0], position[1])
+        glTexCoord2f(1, 0); glVertex2f(position[0] + width, position[1])
+        glTexCoord2f(1, 1); glVertex2f(position[0] + width, position[1] + height)
+        glTexCoord2f(0, 1); glVertex2f(position[0], position[1] + height)
         glEnd()
         glDisable(GL_TEXTURE_2D)
 
     def render_speedometer(self):
-        center = (self.display[0] - 100, 150)
-        radius = 80
+        center = (self.display[0] - 150, 200)  # Adjusted position
+        radius = 100  # Slightly larger radius
         start_angle = math.pi
         end_angle = 2 * math.pi
         num_segments = 100
