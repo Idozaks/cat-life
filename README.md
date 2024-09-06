@@ -1,209 +1,77 @@
 Here's an exhaustive `README.md` template you can use for your new Git repository. This template is structured to cover all the essential information a user or contributor might need.
 
 ```markdown
-# Project Name
+# Cat Life
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/travis/username/repository.svg)](https://travis-ci.org/username/repository)
-[![Version](https://img.shields.io/badge/version-1.0.0-brightgreen.svg)](https://github.com/username/repository/releases)
+Cat Life is an interactive 3D game where you control a cat in a virtual environment. The game is built using Python, Pygame, and OpenGL.
 
-## Table of Contents
-1. [Project Description](#project-description)
-2. [Features](#features)
-3. [Installation](#installation)
-4. [Usage](#usage)
-5. [Configuration](#configuration)
-6. [Examples](#examples)
-7. [Contributing](#contributing)
-8. [Testing](#testing)
-9. [Changelog](#changelog)
-10. [License](#license)
-11. [Contact](#contact)
+## Current Features
 
-## Project Description
+1. **3D Cat Model**: A 3D cat model that can be controlled by the player.
 
-A brief overview of what your project does, the problem it solves, and who it's for.
+2. **Movement Controls**:
+   - Arrow Up: Move forward
+   - Arrow Left/Right: Rotate the cat
+   - Shift: Accelerate (increase speed)
 
-**Example:**
+3. **Special Moves**:
+   - Space: Jump (hold for higher jumps)
+   - F: Front Flip
+   - B: Backflip
+   - T: Turn 180 degrees
 
-`Cat Life` is a 3D game built with Python, designed to let players experience life as a cat. Navigate the world, complete quests, and interact with a variety of characters, including a sleek, agile stray dog.
+4. **Physics and Collision Detection**:
+   - Gravity simulation for jumping and falling
+   - Collision detection with objects in the environment
 
-## Features
+5. **3D Environment**:
+   - Textured ground
+   - 3D box obstacle that the cat can jump on
 
-- [x] 3D game environment with interactive gameplay
-- [x] Supports keyboard and mouse input
-- [x] Dynamic character animations and interactions
-- [x] Multi-level progression system
-- [x] Customizable settings and user preferences
+6. **Camera System**:
+   - Third-person camera that follows the cat
+   - Smooth camera transitions
 
-## Installation
+7. **User Interface**:
+   - FPS counter
+   - Speed and acceleration display
+   - Speedometer
+   - Controls information
 
-### Prerequisites
+8. **Debug Features**:
+   - Visible hitboxes for collision detection (bright magenta color)
 
-- Python 3.8+
-- Pygame 2.0+ (if applicable)
-- Additional libraries (e.g., `PyOpenGL`, `Panda3D`, `Ursina`) if using alternative game engines.
+## Technical Implementations
 
-### Setup Instructions
+- Utilizes OpenGL for 3D rendering
+- Custom OBJ file loader for 3D models
+- Implements a basic physics system for movement and jumps
+- Uses Pygame for window management and input handling
+- Custom collision detection system for rotated 3D boxes
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/username/repository.git
-   cd repository
-   ```
+## Planned Features
 
-2. Create and activate a virtual environment (optional but recommended):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+- More diverse environments and obstacles
+- Additional cat animations and behaviors
+- Sound effects and background music
+- Level design and progression system
 
-3. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## How to Run
 
-4. Run the project:
-   ```bash
-   python main.py
-   ```
+[Include instructions on how to set up and run the game]
 
-## Usage
+## Dependencies
 
-### Running the Game
+- Python 3.x
+- Pygame
+- PyOpenGL
 
-To start the game, execute the following command in your terminal:
-
-```bash
-python main.py
-```
-
-The game will launch in a new window. Use the arrow keys or `WASD` to move the character. Press the spacebar to interact with objects in the game.
-
-### Available Commands
-
-- `python main.py --fullscreen`: Launch the game in fullscreen mode.
-- `python main.py --debug`: Run the game in debug mode, logging extra details.
-
-## Configuration
-
-All game settings can be configured via the `config.yaml` file located in the root directory. Options include:
-
-- Screen resolution
-- Audio volume levels
-- Input key bindings
-
-Modify the file as needed, then restart the game to apply changes.
-
-### Example `config.yaml`:
-
-```yaml
-screen:
-  width: 1920
-  height: 1080
-  fullscreen: false
-
-audio:
-  master_volume: 0.8
-  music_volume: 0.5
-
-controls:
-  move_up: "W"
-  move_down: "S"
-  move_left: "A"
-  move_right: "D"
-  interact: "space"
-```
-
-## Examples
-
-Here are some sample commands to run the project in different modes:
-
-1. **Standard Mode:**
-   ```bash
-   python main.py
-   ```
-
-2. **Debug Mode:**
-   ```bash
-   python main.py --debug
-   ```
-
-3. **Fullscreen Mode:**
-   ```bash
-   python main.py --fullscreen
-   ```
+[Include any additional setup or installation instructions]
 
 ## Contributing
 
-We welcome contributions to this project! To get started:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. Commit your changes:
-   ```bash
-   git commit -m "Add your descriptive message here"
-   ```
-4. Push your branch to GitHub:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-5. Submit a pull request and describe the changes you made.
-
-### Code of Conduct
-
-Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
-
-## Testing
-
-### Unit Tests
-
-To run the tests, first ensure that all required testing libraries are installed:
-
-```bash
-pip install -r requirements-dev.txt
-```
-
-Run the tests:
-
-```bash
-pytest tests/
-```
-
-### Code Coverage
-
-To check code coverage, run the following command:
-
-```bash
-coverage run -m pytest
-coverage report
-```
-
-## Changelog
-
-View the changelog for this project [here](CHANGELOG.md).
-
-### Version 1.0.0
-
-- Initial release with basic gameplay, character animations, and level system.
+[If you're open to contributions, include guidelines on how others can contribute to the project]
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For questions, feedback, or support, feel free to reach out:
-
-- **Email**: ido@example.com
-- **GitHub**: [Ido's GitHub](https://github.com/username)
-- **Twitter**: [Ido's Twitter](https://twitter.com/username)
-
-```
-
----
-
-You can adapt this template based on your project specifics, adding more details or removing sections as needed. It ensures that anyone visiting your repository has clear instructions on how to use, contribute to, and understand your project.
+[Include your chosen license information]
