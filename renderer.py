@@ -23,6 +23,8 @@ class Renderer:
         glRotatef(self.game.rotation_y, 0, 1, 0)
         if self.game.is_turning:
             glRotatef(self.game.turn_progress, 0, 1, 0)
+        if self.game.is_flipping:
+            glRotatef(self.game.flip_rotation, 1, 0, 0)  # Rotation for flip
         glRotatef(180, 0, 1, 0)
         glScalef(0.2, 0.2, 0.2)
         self.game.cat.render()
@@ -75,6 +77,8 @@ class Renderer:
         self.render_text("T: Turn 180 degrees", (20, self.game.display[1] - 420))
         self.render_text("Shift: Accelerate", (20, self.game.display[1] - 460))
         self.render_text("Space: Jump", (20, self.game.display[1] - 500))
+        self.render_text("F: Front Flip", (20, self.game.display[1] - 540))
+        self.render_text("B: Backflip", (20, self.game.display[1] - 580))
 
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)

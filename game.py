@@ -62,6 +62,15 @@ class Game:
 
         self.renderer = Renderer(self)
 
+        self.is_flipping = False
+        self.flip_progress = 0
+        self.flip_height = 6.0  # Increased for higher flips
+        self.flip_start_y = 0
+        self.flip_rotation = 0
+        self.flip_duration = 0.8
+        self.flip_timer = 0
+        self.flip_direction = 1  # 1 for front flip, -1 for backflip
+
     def load_texture(self, filename):
         texture_surface = pygame.image.load(filename)
         texture_data = pygame.image.tostring(texture_surface, "RGBA", 1)
@@ -171,15 +180,36 @@ class Game:
 
         self.rotation_y %= 360
 
-        if not self.is_jumping and keys[pygame.K_SPACE]:
+        if not self.is_jumping and not self.is_flipping:
+            if keys[pygame.K_f]:  # Front flip
+                self.start_flip(1)
+            elif keys[pygame.K_b]:  # Backflip
+                self.start_flip(-1)
+
+        if self.is_flipping:
+            self.flip_timer += dt
+            self.jump_velocity += self.gravity * dt
+            self.position[1] += self.jump_velocity * dt
+
+            # Calculate flip rotation based on time, not position
+            self.flip_rotation = (self.flip_timer / self.flip_duration) * 360 * self.flip_direction
+            self.flip_rotation = max(0, min(abs(self.flip_rotation), 360)) * self.flip_direction
+
+            if self.position[1] <= self.initial_y:
+                self.position[1] = self.initial_y
+                self.is_flipping = False
+                self.flip_rotation = 0
+                self.jump_velocity = 0
+
+        if not self.is_jumping and not self.is_flipping and keys[pygame.K_SPACE]:
             self.is_jumping = True
             self.jump_start_time = time.time()
             self.jump_hold_time = 0
             self.jump_velocity = self.min_jump_velocity  # Start with minimum jump velocity
 
-        if self.is_jumping:
+        if self.is_jumping or (not self.is_flipping and self.position[1] > self.initial_y):
             current_time = time.time()
-            if keys[pygame.K_SPACE] and current_time - self.jump_start_time < self.max_jump_hold_time:
+            if self.is_jumping and keys[pygame.K_SPACE] and current_time - self.jump_start_time < self.max_jump_hold_time:
                 self.jump_hold_time = current_time - self.jump_start_time
                 jump_progress = min(self.jump_hold_time / self.max_jump_hold_time, 1)
                 target_velocity = math.sqrt(2 * abs(self.gravity) * (self.jump_height + (self.max_jump_height - self.jump_height) * jump_progress))
@@ -194,3 +224,11 @@ class Game:
                 self.is_jumping = False
                 self.position[1] = self.initial_y
                 self.jump_velocity = 0
+
+    def start_flip(self, direction):
+        self.is_flipping = True
+        self.flip_timer = 0
+        self.jump_velocity = math.sqrt(2 * abs(self.gravity) * self.flip_height)
+        self.flip_start_y = self.position[1]
+        self.flip_direction = direction
+        self.flip_rotation = 0
