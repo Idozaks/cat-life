@@ -54,6 +54,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.fps = 60
         self.frame_time = 1.0 / self.fps
+        self.current_fps = self.fps  # New attribute to store current FPS
 
     def load_texture(self, filename):
         texture_surface = pygame.image.load(filename)
@@ -134,6 +135,9 @@ class Game:
                 self.handle_keys(keys, self.frame_time)
                 lag -= self.frame_time
 
+            # Update current FPS
+            self.current_fps = self.clock.get_fps()
+
             # Render
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             
@@ -161,7 +165,7 @@ class Game:
             self.clock.tick(self.fps)
 
     def handle_keys(self, keys, dt):
-        rotation_speed = 2
+        rotation_speed = 120 * dt  # Adjusted for 60 FPS (2 degrees per frame)
 
         # Handle acceleration for both movement and turning
         is_shift_pressed = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
@@ -194,8 +198,8 @@ class Game:
 
             if keys[pygame.K_UP]:
                 # Move forward in the direction the cat is facing
-                self.position[0] += math.sin(rotation_rad) * self.current_speed
-                self.position[2] += math.cos(rotation_rad) * self.current_speed
+                self.position[0] += math.sin(rotation_rad) * self.current_speed * dt * 60
+                self.position[2] += math.cos(rotation_rad) * self.current_speed * dt * 60
 
         # Handle turning
         if self.is_turning:
@@ -222,6 +226,9 @@ class Game:
 
         # Render "Cat Life" title
         self.render_text("Cat Life", (20, self.display[1] - 40), font_size=48)
+
+        # Render current FPS
+        self.render_text(f"FPS: {self.current_fps:.1f}", (self.display[0] - 150, self.display[1] - 40))
 
         speed_units = "units/s"
         self.render_text(f"Speed: {self.current_speed:.2f} {speed_units}", (20, self.display[1] - 100))
