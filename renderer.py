@@ -30,7 +30,12 @@ class Renderer:
         self.game.cat.render()
         glPopMatrix()
 
+        # Render cat's hitbox
+        self.render_hitbox(self.game.cat_collider)
+
         self.render_ui()
+
+        self.game.box.render()
 
     def render_ground(self):
         glBindTexture(GL_TEXTURE_2D, self.game.ground_texture)
@@ -137,3 +142,31 @@ class Renderer:
         self.render_text(f"{self.game.base_speed:.1f}", (center[0] - radius - 30, center[1] - 10))
         self.render_text(f"{self.game.max_speed:.1f}", (center[0] + radius + 10, center[1] - 10))
         self.render_text("Speed", (center[0] - 20, center[1] - radius - 20))
+
+    def render_hitbox(self, box):
+        glPushMatrix()
+        glTranslatef(*box.position)
+        glRotatef(box.rotation, 0, 1, 0)  # Apply rotation around Y-axis
+        
+        # Change the color to bright magenta with some transparency
+        glColor4f(1.0, 0.0, 1.0, 0.5)  # Bright magenta with 50% opacity
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        
+        glBegin(GL_LINES)
+        
+        # Draw the hitbox
+        for x in (-1, 1):
+            for y in (-1, 1):
+                for z in (-1, 1):
+                    glVertex3f(x * box.size[0]/2, y * box.size[1]/2, z * box.size[2]/2)
+                    glVertex3f(x * box.size[0]/2, y * box.size[1]/2, -z * box.size[2]/2)
+                    glVertex3f(x * box.size[0]/2, y * box.size[1]/2, z * box.size[2]/2)
+                    glVertex3f(x * box.size[0]/2, -y * box.size[1]/2, z * box.size[2]/2)
+                    glVertex3f(x * box.size[0]/2, y * box.size[1]/2, z * box.size[2]/2)
+                    glVertex3f(-x * box.size[0]/2, y * box.size[1]/2, z * box.size[2]/2)
+        
+        glEnd()
+        
+        glDisable(GL_BLEND)
+        glPopMatrix()

@@ -6,6 +6,7 @@ from objloader import OBJ
 import math
 import time
 from renderer import Renderer
+from box import Box
 
 class Game:
     def __init__(self):
@@ -22,9 +23,11 @@ class Game:
         glEnable(GL_DEPTH_TEST)
         
         self.cat = OBJ('models/cat.obj', swapyz=True)
+        self.cat_collider = Box([0, 0, 0], [2.0, 2.0, 4.0])  # Doubled size
+        self.hitbox_vertical_offset = 0.1  # Add this line to define a small vertical offset
         self.rotation_y = 45
         self.position = [0, -2, 0]
-        self.initial_y = self.position[1]  # Add this line
+        self.initial_y = self.position[1]
         self.base_speed = 0.1
         self.current_speed = self.base_speed
         self.max_speed = self.base_speed * 3
@@ -45,15 +48,15 @@ class Game:
         self.current_turn_speed = self.base_turn_speed
         self.max_turn_speed = self.base_turn_speed * 3
 
-        self.jump_height = 4.0  # Reduced from 6.0
-        self.max_jump_height = 8.0  # Reduced from 12.0
+        self.jump_height = 4.0
+        self.max_jump_height = 8.0
         self.is_jumping = False
         self.jump_start_time = 0
         self.jump_hold_time = 0
-        self.max_jump_hold_time = 0.3  # Reduced from 0.5
+        self.max_jump_hold_time = 0.3
         self.jump_velocity = 0
-        self.gravity = -9.8 * 4  # Increased gravity for faster fall
-        self.min_jump_velocity = math.sqrt(2 * abs(self.gravity) * (self.jump_height * 0.25))  # New: minimum jump height
+        self.gravity = -9.8 * 4
+        self.min_jump_velocity = math.sqrt(2 * abs(self.gravity) * (self.jump_height * 0.25))
 
         self.clock = pygame.time.Clock()
         self.fps = 60
@@ -64,12 +67,14 @@ class Game:
 
         self.is_flipping = False
         self.flip_progress = 0
-        self.flip_height = 6.0  # Increased for higher flips
+        self.flip_height = 6.0
         self.flip_start_y = 0
         self.flip_rotation = 0
         self.flip_duration = 0.8
         self.flip_timer = 0
-        self.flip_direction = 1  # 1 for front flip, -1 for backflip
+        self.flip_direction = 1
+
+        self.box = Box([5, 0, 5], [6, 6, 6])
 
     def load_texture(self, filename):
         texture_surface = pygame.image.load(filename)
@@ -107,6 +112,14 @@ class Game:
             self.position[0], self.position[1], self.position[2],
             0, 1, 0
         )
+
+        # Update cat collider position and rotation
+        self.cat_collider.position = [
+            self.position[0],
+            self.position[1] + self.cat_collider.size[1] / 2 + self.hitbox_vertical_offset,  # Add the offset here
+            self.position[2]
+        ]
+        self.cat_collider.rotation = self.rotation_y
 
     def run(self):
         previous_time = time.time()
@@ -168,8 +181,18 @@ class Game:
             rotation_rad = math.radians(self.rotation_y)
 
             if keys[pygame.K_UP]:
-                self.position[0] += math.sin(rotation_rad) * self.current_speed * dt * 60
-                self.position[2] += math.cos(rotation_rad) * self.current_speed * dt * 60
+                new_x = self.position[0] + math.sin(rotation_rad) * self.current_speed * dt * 60
+                new_z = self.position[2] + math.cos(rotation_rad) * self.current_speed * dt * 60
+                
+                # Create a temporary collider at the new position
+                temp_collider = Box([new_x, self.position[1] + self.cat_collider.size[1] / 2 + self.hitbox_vertical_offset, new_z], self.cat_collider.size)  # Add the offset here
+                temp_collider.rotation = self.rotation_y
+                
+                # Check for collision with the box
+                if not self.box.check_collision(temp_collider):
+                    self.position[0] = new_x
+                    self.position[2] = new_z
+                    self.cat_collider.position = [new_x, self.position[1] + self.cat_collider.size[1] / 2 + self.hitbox_vertical_offset, new_z]  # Add the offset here
 
         if self.is_turning:
             self.turn_progress += self.current_turn_speed * dt
@@ -181,9 +204,9 @@ class Game:
         self.rotation_y %= 360
 
         if not self.is_jumping and not self.is_flipping:
-            if keys[pygame.K_f]:  # Front flip
+            if keys[pygame.K_f]:
                 self.start_flip(1)
-            elif keys[pygame.K_b]:  # Backflip
+            elif keys[pygame.K_b]:
                 self.start_flip(-1)
 
         if self.is_flipping:
@@ -191,7 +214,6 @@ class Game:
             self.jump_velocity += self.gravity * dt
             self.position[1] += self.jump_velocity * dt
 
-            # Calculate flip rotation based on time, not position
             self.flip_rotation = (self.flip_timer / self.flip_duration) * 360 * self.flip_direction
             self.flip_rotation = max(0, min(abs(self.flip_rotation), 360)) * self.flip_direction
 
@@ -205,7 +227,7 @@ class Game:
             self.is_jumping = True
             self.jump_start_time = time.time()
             self.jump_hold_time = 0
-            self.jump_velocity = self.min_jump_velocity  # Start with minimum jump velocity
+            self.jump_velocity = self.min_jump_velocity
 
         if self.is_jumping or (not self.is_flipping and self.position[1] > self.initial_y):
             current_time = time.time()
@@ -215,14 +237,33 @@ class Game:
                 target_velocity = math.sqrt(2 * abs(self.gravity) * (self.jump_height + (self.max_jump_height - self.jump_height) * jump_progress))
                 self.jump_velocity = min(self.jump_velocity + (target_velocity - self.jump_velocity) * dt * 10, target_velocity)
             else:
-                # Space released or max hold time reached, start falling
                 self.jump_velocity += self.gravity * dt
             
             self.position[1] += self.jump_velocity * dt
+            self.cat_collider.position = [
+                self.position[0],
+                self.position[1] + self.cat_collider.size[1] / 2 + self.hitbox_vertical_offset,  # Add the offset here
+                self.position[2]
+            ]
 
-            if self.position[1] <= self.initial_y:
+            # Check for collision with the box using the cat's collider
+            if self.box.check_collision(self.cat_collider):
+                self.position[1] = self.box.position[1] + self.box.size[1]/2
+                self.cat_collider.position = [
+                    self.position[0],
+                    self.position[1] + self.cat_collider.size[1] / 2 + self.hitbox_vertical_offset,  # Add the offset here
+                    self.position[2]
+                ]
+                self.is_jumping = False
+                self.jump_velocity = 0
+            elif self.position[1] <= self.initial_y:
                 self.is_jumping = False
                 self.position[1] = self.initial_y
+                self.cat_collider.position = [
+                    self.position[0],
+                    self.position[1] + self.cat_collider.size[1] / 2 + self.hitbox_vertical_offset,  # Add the offset here
+                    self.position[2]
+                ]
                 self.jump_velocity = 0
 
     def start_flip(self, direction):
