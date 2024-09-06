@@ -10,6 +10,7 @@ class Game:
         pygame.init()
         self.display = (1920, 1080)
         pygame.display.set_mode(self.display, DOUBLEBUF | OPENGL)
+        pygame.display.set_caption("Cat Life")  # Set window caption
         
         # Set up the camera for an isometric-like view
         glMatrixMode(GL_PROJECTION)
@@ -209,16 +210,26 @@ class Game:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+        # Render "Cat Life" title
+        self.render_text("Cat Life", (20, self.display[1] - 40), font_size=48)
+
         speed_units = "units/s"
-        self.render_text(f"Speed: {self.current_speed:.2f} {speed_units}", (20, self.display[1] - 80))
+        self.render_text(f"Speed: {self.current_speed:.2f} {speed_units}", (20, self.display[1] - 100))
 
         acceleration = (self.current_speed - self.base_speed) / (self.max_speed - self.base_speed) * 100
-        self.render_text(f"Acceleration: {acceleration:.0f}%", (20, self.display[1] - 130))
+        self.render_text(f"Acceleration: {acceleration:.0f}%", (20, self.display[1] - 150))
 
-        self.render_text(f"Base Speed: {self.base_speed:.2f} {speed_units}", (20, self.display[1] - 180))
-        self.render_text(f"Max Speed: {self.max_speed:.2f} {speed_units}", (20, self.display[1] - 230))
+        self.render_text(f"Base Speed: {self.base_speed:.2f} {speed_units}", (20, self.display[1] - 200))
+        self.render_text(f"Max Speed: {self.max_speed:.2f} {speed_units}", (20, self.display[1] - 250))
 
         self.render_speedometer()
+
+        # Add keybindings info
+        self.render_text("Controls:", (20, self.display[1] - 300))
+        self.render_text("Arrow Up: Move forward", (20, self.display[1] - 340))
+        self.render_text("Arrow Left/Right: Rotate", (20, self.display[1] - 380))
+        self.render_text("T: Turn 180 degrees", (20, self.display[1] - 420))
+        self.render_text("Shift: Accelerate", (20, self.display[1] - 460))
 
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
@@ -227,9 +238,10 @@ class Game:
         glMatrixMode(GL_MODELVIEW)
         glPopMatrix()
 
-    def render_text(self, text, position):
+    def render_text(self, text, position, font_size=36):
+        font = pygame.font.Font(None, font_size)
         if text not in self.text_textures:
-            surface = self.font.render(text, True, (255, 255, 255, 255))
+            surface = font.render(text, True, (255, 255, 255, 255))
             texture = pygame.image.tostring(surface, 'RGBA', True)
             texture_id = glGenTextures(1)
             glBindTexture(GL_TEXTURE_2D, texture_id)
