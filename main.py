@@ -4,6 +4,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from objloader import OBJ
 import math
+import time
 
 class Game:
     def __init__(self):
@@ -49,6 +50,10 @@ class Game:
         self.base_turn_speed = 360  # Degrees per second
         self.current_turn_speed = self.base_turn_speed
         self.max_turn_speed = self.base_turn_speed * 3
+
+        self.clock = pygame.time.Clock()
+        self.fps = 60
+        self.frame_time = 1.0 / self.fps
 
     def load_texture(self, filename):
         texture_surface = pygame.image.load(filename)
@@ -105,10 +110,14 @@ class Game:
         )
 
     def run(self):
+        previous_time = time.time()
+        lag = 0.0
+
         while True:
-            current_time = pygame.time.get_ticks()
-            dt = (current_time - self.last_time) / 1000.0  # Convert to seconds
-            self.last_time = current_time
+            current_time = time.time()
+            elapsed_time = current_time - previous_time
+            previous_time = current_time
+            lag += elapsed_time
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -119,36 +128,37 @@ class Game:
                         self.is_turning = True
                         self.turn_progress = 0
 
-            keys = pygame.key.get_pressed()
-            self.handle_keys(keys, dt)
+            # Update game state
+            while lag >= self.frame_time:
+                keys = pygame.key.get_pressed()
+                self.handle_keys(keys, self.frame_time)
+                lag -= self.frame_time
 
+            # Render
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             
-            # Update and apply camera transform
             self.update_camera()
             
-            # Reset color to white before rendering 3D scene
             glColor3f(1.0, 1.0, 1.0)
             
-            # Render ground plane
             self.render_ground()
             
-            # Render 3D scene
             glPushMatrix()
             glTranslatef(*self.position)
             glRotatef(self.rotation_y, 0, 1, 0)
             if self.is_turning:
                 glRotatef(self.turn_progress, 0, 1, 0)
-            glRotatef(180, 0, 1, 0)  # Rotate the cat 180 degrees to face the correct direction
-            glScalef(0.2, 0.2, 0.2)  # Scale the cat to be smaller
+            glRotatef(180, 0, 1, 0)
+            glScalef(0.2, 0.2, 0.2)
             self.cat.render()
             glPopMatrix()
 
-            # Render UI
             self.render_ui()
 
             pygame.display.flip()
-            pygame.time.wait(10)
+            
+            # Limit the frame rate
+            self.clock.tick(self.fps)
 
     def handle_keys(self, keys, dt):
         rotation_speed = 2
