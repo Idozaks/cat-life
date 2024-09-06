@@ -24,6 +24,7 @@ class Game:
         self.cat = OBJ('models/cat.obj', swapyz=True)
         self.rotation_y = 45
         self.position = [0, -2, 0]
+        self.initial_y = self.position[1]  # Add this line
         self.base_speed = 0.1
         self.current_speed = self.base_speed
         self.max_speed = self.base_speed * 3
@@ -43,6 +44,16 @@ class Game:
         self.base_turn_speed = 360
         self.current_turn_speed = self.base_turn_speed
         self.max_turn_speed = self.base_turn_speed * 3
+
+        self.jump_height = 4.0  # Reduced from 6.0
+        self.max_jump_height = 8.0  # Reduced from 12.0
+        self.is_jumping = False
+        self.jump_start_time = 0
+        self.jump_hold_time = 0
+        self.max_jump_hold_time = 0.3  # Reduced from 0.5
+        self.jump_velocity = 0
+        self.gravity = -9.8 * 4  # Increased gravity for faster fall
+        self.min_jump_velocity = math.sqrt(2 * abs(self.gravity) * (self.jump_height * 0.25))  # New: minimum jump height
 
         self.clock = pygame.time.Clock()
         self.fps = 60
@@ -159,3 +170,27 @@ class Game:
                 self.turn_progress = 0
 
         self.rotation_y %= 360
+
+        if not self.is_jumping and keys[pygame.K_SPACE]:
+            self.is_jumping = True
+            self.jump_start_time = time.time()
+            self.jump_hold_time = 0
+            self.jump_velocity = self.min_jump_velocity  # Start with minimum jump velocity
+
+        if self.is_jumping:
+            current_time = time.time()
+            if keys[pygame.K_SPACE] and current_time - self.jump_start_time < self.max_jump_hold_time:
+                self.jump_hold_time = current_time - self.jump_start_time
+                jump_progress = min(self.jump_hold_time / self.max_jump_hold_time, 1)
+                target_velocity = math.sqrt(2 * abs(self.gravity) * (self.jump_height + (self.max_jump_height - self.jump_height) * jump_progress))
+                self.jump_velocity = min(self.jump_velocity + (target_velocity - self.jump_velocity) * dt * 10, target_velocity)
+            else:
+                # Space released or max hold time reached, start falling
+                self.jump_velocity += self.gravity * dt
+            
+            self.position[1] += self.jump_velocity * dt
+
+            if self.position[1] <= self.initial_y:
+                self.is_jumping = False
+                self.position[1] = self.initial_y
+                self.jump_velocity = 0

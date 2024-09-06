@@ -74,6 +74,7 @@ class Renderer:
         self.render_text("Arrow Left/Right: Rotate", (20, self.game.display[1] - 380))
         self.render_text("T: Turn 180 degrees", (20, self.game.display[1] - 420))
         self.render_text("Shift: Accelerate", (20, self.game.display[1] - 460))
+        self.render_text("Space: Jump", (20, self.game.display[1] - 500))
 
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
