@@ -18,11 +18,6 @@ class Game:
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         
-        # Move the camera further back and up, then rotate it
-        glTranslatef(0, -5, -20)  # Move back and down
-        glRotatef(30, 1, 0, 0)    # Rotate 30 degrees around x-axis
-        glRotatef(45, 0, 1, 0)    # Rotate 45 degrees around y-axis
-        
         glEnable(GL_DEPTH_TEST)
         
         self.cat = OBJ('models/cat.obj', swapyz=True)
@@ -35,6 +30,80 @@ class Game:
         self.last_time = pygame.time.get_ticks()
         self.font = pygame.font.Font(None, 36)
         self.text_textures = {}
+        
+        # Add ground plane texture
+        self.ground_texture = self.load_texture('textures/ground.png')
+        
+        # Define ground plane size
+        self.ground_size = 50
+        
+        # Camera settings
+        self.camera_distance = 20
+        self.camera_height = 10
+        self.camera_lag = 0.1  # Adjust this value to change the lag (0 to 1)
+        self.camera_position = [0, self.camera_height, self.camera_distance]
+        self.camera_rotation = self.rotation_y
+        self.is_moving_backward = False
+        self.is_turning = False
+        self.turn_progress = 0
+        self.turn_speed = 360  # Degrees per second
+        self.is_reversed = False  # New flag to track reversed state
+
+    def load_texture(self, filename):
+        texture_surface = pygame.image.load(filename)
+        texture_data = pygame.image.tostring(texture_surface, "RGBA", 1)
+        width = texture_surface.get_width()
+        height = texture_surface.get_height()
+        
+        texture_id = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, texture_id)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data)
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        
+        return texture_id
+
+    def render_ground(self):
+        glBindTexture(GL_TEXTURE_2D, self.ground_texture)
+        glEnable(GL_TEXTURE_2D)
+        
+        glBegin(GL_QUADS)
+        glTexCoord2f(0, 0); glVertex3f(-self.ground_size, -2, -self.ground_size)
+        glTexCoord2f(5, 0); glVertex3f(self.ground_size, -2, -self.ground_size)
+        glTexCoord2f(5, 5); glVertex3f(self.ground_size, -2, self.ground_size)
+        glTexCoord2f(0, 5); glVertex3f(-self.ground_size, -2, self.ground_size)
+        glEnd()
+        
+        glDisable(GL_TEXTURE_2D)
+
+    def update_camera(self):
+        # Calculate ideal camera position
+        camera_angle = self.rotation_y
+        if self.is_turning:
+            camera_angle += self.turn_progress
+        elif self.is_reversed:
+            camera_angle += 180
+
+        ideal_x = self.position[0] - self.camera_distance * math.sin(math.radians(camera_angle))
+        ideal_z = self.position[2] - self.camera_distance * math.cos(math.radians(camera_angle))
+
+        # Interpolate camera position
+        self.camera_position[0] += (ideal_x - self.camera_position[0]) * self.camera_lag
+        self.camera_position[2] += (ideal_z - self.camera_position[2]) * self.camera_lag
+
+        # Interpolate camera rotation
+        target_rotation = camera_angle
+        rotation_diff = (target_rotation - self.camera_rotation + 180) % 360 - 180
+        self.camera_rotation += rotation_diff * self.camera_lag
+
+        # Apply camera transform
+        glLoadIdentity()
+        gluLookAt(
+            self.camera_position[0], self.camera_position[1], self.camera_position[2],
+            self.position[0], self.position[1], self.position[2],
+            0, 1, 0
+        )
 
     def run(self):
         while True:
@@ -52,13 +121,23 @@ class Game:
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             
+            # Update and apply camera transform
+            self.update_camera()
+            
             # Reset color to white before rendering 3D scene
             glColor3f(1.0, 1.0, 1.0)
+            
+            # Render ground plane
+            self.render_ground()
             
             # Render 3D scene
             glPushMatrix()
             glTranslatef(*self.position)
             glRotatef(self.rotation_y, 0, 1, 0)
+            if self.is_turning:
+                glRotatef(self.turn_progress, 0, 1, 0)
+            elif self.is_reversed:
+                glRotatef(180, 0, 1, 0)
             glScalef(0.2, 0.2, 0.2)  # Scale the cat to be smaller
             self.cat.render()
             glPopMatrix()
@@ -80,22 +159,39 @@ class Game:
         elif self.current_speed > target_speed:
             self.current_speed = max(self.current_speed - speed_change, target_speed)
 
-        if keys[pygame.K_RIGHT]:
-            self.rotation_y -= rotation_speed
-        if keys[pygame.K_LEFT]:
-            self.rotation_y += rotation_speed
+        if not self.is_turning:
+            if keys[pygame.K_RIGHT]:
+                self.rotation_y -= rotation_speed
+            if keys[pygame.K_LEFT]:
+                self.rotation_y += rotation_speed
 
-        # Convert rotation to radians
-        rotation_rad = math.radians(self.rotation_y)
+            # Convert rotation to radians
+            rotation_rad = math.radians(self.rotation_y)
 
-        if keys[pygame.K_DOWN]:
-            # Move forward in the direction the cat is facing
-            self.position[0] += math.sin(rotation_rad) * self.current_speed
-            self.position[2] += math.cos(rotation_rad) * self.current_speed
-        if keys[pygame.K_UP]:
-            # Move backward in the direction the cat is facing
-            self.position[0] -= math.sin(rotation_rad) * self.current_speed
-            self.position[2] -= math.cos(rotation_rad) * self.current_speed
+            if keys[pygame.K_UP]:
+                self.is_reversed = False
+                # Move forward in the direction the cat is facing
+                self.position[0] += math.sin(rotation_rad) * self.current_speed
+                self.position[2] += math.cos(rotation_rad) * self.current_speed
+            elif keys[pygame.K_DOWN]:
+                if not self.is_reversed:
+                    self.is_turning = True
+                    self.turn_progress = 0
+                else:
+                    # Move forward in the reversed direction
+                    self.position[0] += math.sin(rotation_rad) * self.current_speed
+                    self.position[2] += math.cos(rotation_rad) * self.current_speed
+            else:
+                self.is_reversed = False
+
+        # Handle turning
+        if self.is_turning:
+            self.turn_progress += self.turn_speed * dt
+            if self.turn_progress >= 180:
+                self.is_turning = False
+                self.is_reversed = True
+                self.rotation_y += 180
+                self.turn_progress = 0
 
         # Ensure rotation stays within 0-360 range
         self.rotation_y %= 360
@@ -145,10 +241,10 @@ class Game:
         glBindTexture(GL_TEXTURE_2D, texture_id)
         glEnable(GL_TEXTURE_2D)
         glBegin(GL_QUADS)
-        glTexCoord2f(0, 0); glVertex2f(position[0], position[1])
-        glTexCoord2f(1, 0); glVertex2f(position[0] + width, position[1])
-        glTexCoord2f(1, 1); glVertex2f(position[0] + width, position[1] + height)
-        glTexCoord2f(0, 1); glVertex2f(position[0], position[1] + height)
+        glTexCoord2f(0, 1); glVertex2f(position[0], position[1])
+        glTexCoord2f(1, 1); glVertex2f(position[0] + width, position[1])
+        glTexCoord2f(1, 0); glVertex2f(position[0] + width, position[1] + height)
+        glTexCoord2f(0, 0); glVertex2f(position[0], position[1] + height)
         glEnd()
         glDisable(GL_TEXTURE_2D)
 
