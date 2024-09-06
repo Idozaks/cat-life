@@ -43,11 +43,9 @@ class Game:
         self.camera_lag = 0.1  # Adjust this value to change the lag (0 to 1)
         self.camera_position = [0, self.camera_height, self.camera_distance]
         self.camera_rotation = self.rotation_y
-        self.is_moving_backward = False
         self.is_turning = False
         self.turn_progress = 0
         self.turn_speed = 360  # Degrees per second
-        self.is_reversed = False  # New flag to track reversed state
 
     def load_texture(self, filename):
         texture_surface = pygame.image.load(filename)
@@ -82,8 +80,6 @@ class Game:
         camera_angle = self.rotation_y
         if self.is_turning:
             camera_angle += self.turn_progress
-        elif self.is_reversed:
-            camera_angle += 180
 
         ideal_x = self.position[0] - self.camera_distance * math.sin(math.radians(camera_angle))
         ideal_z = self.position[2] - self.camera_distance * math.cos(math.radians(camera_angle))
@@ -115,6 +111,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_t and not self.is_turning:
+                    self.is_turning = True
+                    self.turn_progress = 0
 
             keys = pygame.key.get_pressed()
             self.handle_keys(keys, dt)
@@ -136,8 +135,7 @@ class Game:
             glRotatef(self.rotation_y, 0, 1, 0)
             if self.is_turning:
                 glRotatef(self.turn_progress, 0, 1, 0)
-            elif self.is_reversed:
-                glRotatef(180, 0, 1, 0)
+            glRotatef(180, 0, 1, 0)  # Rotate the cat 180 degrees to face the correct direction
             glScalef(0.2, 0.2, 0.2)  # Scale the cat to be smaller
             self.cat.render()
             glPopMatrix()
@@ -169,27 +167,15 @@ class Game:
             rotation_rad = math.radians(self.rotation_y)
 
             if keys[pygame.K_UP]:
-                self.is_reversed = False
                 # Move forward in the direction the cat is facing
                 self.position[0] += math.sin(rotation_rad) * self.current_speed
                 self.position[2] += math.cos(rotation_rad) * self.current_speed
-            elif keys[pygame.K_DOWN]:
-                if not self.is_reversed:
-                    self.is_turning = True
-                    self.turn_progress = 0
-                else:
-                    # Move forward in the reversed direction
-                    self.position[0] += math.sin(rotation_rad) * self.current_speed
-                    self.position[2] += math.cos(rotation_rad) * self.current_speed
-            else:
-                self.is_reversed = False
 
         # Handle turning
         if self.is_turning:
             self.turn_progress += self.turn_speed * dt
             if self.turn_progress >= 180:
                 self.is_turning = False
-                self.is_reversed = True
                 self.rotation_y += 180
                 self.turn_progress = 0
 
