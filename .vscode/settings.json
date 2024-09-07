@@ -1,0 +1,9 @@
+{
+    "editor.fontSize": 12,
+    "editor.wordWrap": "on",
+    "cursor.aipreview.enabled": true,
+    "cursor.chat.alwaysSearchWeb": false,
+    "cursor.chat.premiumChatAutoScrollWhenAtBottom": true,
+    "cursor.chat.showSuggestedFiles": true,
+    "cursor.chat.smoothStreaming": true
+}

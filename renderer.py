@@ -25,8 +25,9 @@ class Renderer:
             glRotatef(self.game.turn_progress, 0, 1, 0)
         if self.game.is_flipping:
             glRotatef(self.game.flip_rotation, 1, 0, 0)  # Rotation for flip
-        glRotatef(180, 0, 1, 0)
-        glScalef(0.2, 0.2, 0.2)
+        glRotatef(0, 0, 1, 0)  # Change this line from 180 to 0
+        scale_factor = self.game.cat_height / 5  # Assuming the model is 5 units tall
+        glScalef(scale_factor, scale_factor, scale_factor)
         self.game.cat.render()
         glPopMatrix()
 
@@ -42,10 +43,10 @@ class Renderer:
         glEnable(GL_TEXTURE_2D)
         
         glBegin(GL_QUADS)
-        glTexCoord2f(0, 0); glVertex3f(-self.game.ground_size, -2, -self.game.ground_size)
-        glTexCoord2f(5, 0); glVertex3f(self.game.ground_size, -2, -self.game.ground_size)
-        glTexCoord2f(5, 5); glVertex3f(self.game.ground_size, -2, self.game.ground_size)
-        glTexCoord2f(0, 5); glVertex3f(-self.game.ground_size, -2, self.game.ground_size)
+        glTexCoord2f(0, 0); glVertex3f(-self.game.ground_size, 0, -self.game.ground_size)
+        glTexCoord2f(5, 0); glVertex3f(self.game.ground_size, 0, -self.game.ground_size)
+        glTexCoord2f(5, 5); glVertex3f(self.game.ground_size, 0, self.game.ground_size)
+        glTexCoord2f(0, 5); glVertex3f(-self.game.ground_size, 0, self.game.ground_size)
         glEnd()
         
         glDisable(GL_TEXTURE_2D)
@@ -77,8 +78,8 @@ class Renderer:
         self.render_speedometer()
 
         self.render_text("Controls:", (20, 300))
-        self.render_text("Arrow Up: Move forward", (20, 340))
-        self.render_text("Arrow Left/Right: Rotate", (20, 380))
+        self.render_text("W / Arrow Up: Move forward", (20, 340))
+        self.render_text("A/D / Arrow Left/Right: Rotate", (20, 380))
         self.render_text("T: Turn 180 degrees", (20, 420))
         self.render_text("Shift: Accelerate", (20, 460))
         self.render_text("Space: Jump", (20, 500))
