@@ -69,7 +69,8 @@ class Game:
         return texture_id
 
     def update_camera(self):
-        self.camera.update(self.cat.position, self.cat.collider)
+        current_time = time.time()
+        self.camera.update(self.cat.position, self.cat.collider, current_time)
         self.cat.update_collider()
 
     def run(self):
@@ -98,6 +99,7 @@ class Game:
             while lag >= self.frame_time:
                 keys = pygame.key.get_pressed()
                 self.handle_keys(keys, self.frame_time)
+                self.update_camera()  # Make sure to call this every frame
                 lag -= self.frame_time
 
             self.current_fps = self.clock.get_fps()
@@ -109,7 +111,8 @@ class Game:
 
     def handle_mouse_motion(self, event):
         dx, dy = event.rel
-        self.camera.handle_mouse_motion(dx, dy)
+        current_time = time.time()
+        self.camera.handle_mouse_motion(dx, dy, current_time)
         
         # Reset mouse position to center
         pygame.mouse.set_pos(self.display[0] // 2, self.display[1] // 2)
@@ -135,15 +138,13 @@ class Game:
             turn_amount = 2  # Adjust this value to change the turn rate
             if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                 self.cat.rotation_y -= turn_amount
+                self.camera.rotate_horizontal(-turn_amount)  # Set target rotation for camera
             elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 self.cat.rotation_y += turn_amount
+                self.camera.rotate_horizontal(turn_amount)  # Set target rotation for camera
 
-            # Gradually return to camera rotation when not turning
-            if not (keys[pygame.K_RIGHT] or keys[pygame.K_d] or keys[pygame.K_LEFT] or keys[pygame.K_a]):
-                camera_rotation = self.camera.get_rotation()
-                rotation_diff = (camera_rotation - self.cat.rotation_y + 180) % 360 - 180
-                if abs(rotation_diff) > 1:
-                    self.cat.rotation_y += rotation_diff * 0.1  # Adjust this value to change the speed of returning to camera rotation
+            # Remove the gradual return to camera rotation
+            # This section is no longer needed as the camera will always match the cat's rotation
 
             rotation_rad = math.radians(self.cat.rotation_y)
 

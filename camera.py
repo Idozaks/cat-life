@@ -16,9 +16,24 @@ class Camera:
         self.min_vertical_angle = -20  # Allow looking slightly upwards
         self.max_vertical_angle = 60   # Reduce maximum downward angle
         self.height_offset = 1.0  # Decrease height offset for a lower view
+        self.target_angle_horizontal = 0
+        self.angle_smoothing = 0.1  # Adjust this value to change the smoothing speed (0.1 = 10% per frame)
+        self.mouse_control_active = False
+        self.mouse_control_timeout = 0.5  # Seconds to wait before reverting to cat-based rotation
+        self.last_mouse_movement_time = 0
 
-    def update(self, target_position, cat_collider):
+    def update(self, target_position, cat_collider, current_time):
         self.target = list(target_position)
+
+        if self.mouse_control_active and current_time - self.last_mouse_movement_time > self.mouse_control_timeout:
+            self.mouse_control_active = False
+
+        if not self.mouse_control_active:
+            # Smoothly interpolate the horizontal angle towards the cat's rotation
+            angle_diff = (self.target_angle_horizontal - self.angle_horizontal + 180) % 360 - 180
+            self.angle_horizontal += angle_diff * self.angle_smoothing
+
+        self.position = list(target_position)
         horizontal_rad = math.radians(self.angle_horizontal)
         vertical_rad = math.radians(self.angle_vertical)
         
@@ -51,9 +66,13 @@ class Camera:
             0, 1, 0
         )
 
-    def handle_mouse_motion(self, dx, dy):
+    def handle_mouse_motion(self, dx, dy, current_time):
+        self.last_mouse_movement_time = current_time
         self.angle_horizontal -= dx * self.sensitivity
-        self.angle_vertical -= dy * self.sensitivity
+        self.angle_vertical += dy * self.sensitivity  # Changed minus to plus here
+        
+        # Update target angle to match current angle
+        self.target_angle_horizontal = self.angle_horizontal
         
         # Clamp the vertical angle to prevent flipping and looking below the cat
         self.angle_vertical = max(self.min_vertical_angle, min(self.max_vertical_angle, self.angle_vertical))
@@ -64,3 +83,8 @@ class Camera:
 
     def get_rotation(self):
         return self.angle_horizontal
+
+    def rotate_horizontal(self, angle):
+        # Update target angle, but don't immediately change current angle
+        self.target_angle_horizontal += angle
+        self.target_angle_horizontal %= 360

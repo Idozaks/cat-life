@@ -1,5 +1,6 @@
 import pygame
 from game import Game
+from cat import Cat
 
 def main():
     pygame.init()
