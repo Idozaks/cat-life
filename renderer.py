@@ -54,7 +54,7 @@ class Renderer:
         glMatrixMode(GL_PROJECTION)
         glPushMatrix()
         glLoadIdentity()
-        glOrtho(0, self.game.display[0], 0, self.game.display[1], -1, 1)
+        glOrtho(0, self.game.display[0], self.game.display[1], 0, -1, 1)
         glMatrixMode(GL_MODELVIEW)
         glPushMatrix()
         glLoadIdentity()
@@ -62,28 +62,28 @@ class Renderer:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        self.render_text("Cat Life", (20, self.game.display[1] - 40), font_size=48)
-        self.render_text(f"FPS: {self.game.current_fps:.1f}", (self.game.display[0] - 150, self.game.display[1] - 40))
+        self.render_text("Cat Life", (20, 40), font_size=48)
+        self.render_text(f"FPS: {self.game.current_fps:.1f}", (self.game.display[0] - 150, 40))
 
         speed_units = "units/s"
-        self.render_text(f"Speed: {self.game.current_speed:.2f} {speed_units}", (20, self.game.display[1] - 100))
+        self.render_text(f"Speed: {self.game.current_speed:.2f} {speed_units}", (20, 100))
 
         acceleration = (self.game.current_speed - self.game.base_speed) / (self.game.max_speed - self.game.base_speed) * 100
-        self.render_text(f"Acceleration: {acceleration:.0f}%", (20, self.game.display[1] - 150))
+        self.render_text(f"Acceleration: {acceleration:.0f}%", (20, 150))
 
-        self.render_text(f"Base Speed: {self.game.base_speed:.2f} {speed_units}", (20, self.game.display[1] - 200))
-        self.render_text(f"Max Speed: {self.game.max_speed:.2f} {speed_units}", (20, self.game.display[1] - 250))
+        self.render_text(f"Base Speed: {self.game.base_speed:.2f} {speed_units}", (20, 200))
+        self.render_text(f"Max Speed: {self.game.max_speed:.2f} {speed_units}", (20, 250))
 
         self.render_speedometer()
 
-        self.render_text("Controls:", (20, self.game.display[1] - 300))
-        self.render_text("Arrow Up: Move forward", (20, self.game.display[1] - 340))
-        self.render_text("Arrow Left/Right: Rotate", (20, self.game.display[1] - 380))
-        self.render_text("T: Turn 180 degrees", (20, self.game.display[1] - 420))
-        self.render_text("Shift: Accelerate", (20, self.game.display[1] - 460))
-        self.render_text("Space: Jump", (20, self.game.display[1] - 500))
-        self.render_text("F: Front Flip", (20, self.game.display[1] - 540))
-        self.render_text("B: Backflip", (20, self.game.display[1] - 580))
+        self.render_text("Controls:", (20, 300))
+        self.render_text("Arrow Up: Move forward", (20, 340))
+        self.render_text("Arrow Left/Right: Rotate", (20, 380))
+        self.render_text("T: Turn 180 degrees", (20, 420))
+        self.render_text("Shift: Accelerate", (20, 460))
+        self.render_text("Space: Jump", (20, 500))
+        self.render_text("F: Front Flip", (20, 540))
+        self.render_text("B: Backflip", (20, 580))
 
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
