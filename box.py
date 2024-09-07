@@ -15,7 +15,7 @@ class Box:
         
         glBegin(GL_QUADS)
         # Front face
-        glColor3f(0.8, 0.5, 0.3)
+        glColor3f(1.0, 0.7, 0.3)  # Brighter orange color
         glVertex3f(-0.5, -0.5,  0.5)
         glVertex3f( 0.5, -0.5,  0.5)
         glVertex3f( 0.5,  0.5,  0.5)
@@ -26,7 +26,7 @@ class Box:
         glVertex3f( 0.5,  0.5, -0.5)
         glVertex3f( 0.5, -0.5, -0.5)
         # Top face
-        glColor3f(0.9, 0.6, 0.4)
+        glColor3f(1.0, 0.8, 0.4)  # Slightly lighter for the top
         glVertex3f(-0.5,  0.5, -0.5)
         glVertex3f(-0.5,  0.5,  0.5)
         glVertex3f( 0.5,  0.5,  0.5)
@@ -37,7 +37,7 @@ class Box:
         glVertex3f( 0.5, -0.5,  0.5)
         glVertex3f(-0.5, -0.5,  0.5)
         # Right face
-        glColor3f(0.7, 0.4, 0.2)
+        glColor3f(0.9, 0.6, 0.2)  # Slightly darker for sides
         glVertex3f( 0.5, -0.5, -0.5)
         glVertex3f( 0.5,  0.5, -0.5)
         glVertex3f( 0.5,  0.5,  0.5)

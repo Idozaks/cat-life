@@ -10,23 +10,84 @@ class Renderer:
         self.text_textures = {}
 
     def render(self):
+        glClearColor(0.5, 0.7, 1.0, 1.0)  # Set a light blue background color
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glEnable(GL_DEPTH_TEST)
         
         self.game.update_camera()
         
-        # Enable lighting
-        glEnable(GL_LIGHTING)
-        glEnable(GL_LIGHT0)
-        glEnable(GL_COLOR_MATERIAL)
-        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
+        # Enable fog to create a fade-out effect
+        glEnable(GL_FOG)
+        glFogfv(GL_FOG_COLOR, (0.5, 0.7, 1.0, 1.0))  # Match fog color with background
+        glFogf(GL_FOG_START, 10.0)  # Start fog at 10 units away
+        glFogf(GL_FOG_END, 20.0)    # Full fog at 20 units away
+        glFogi(GL_FOG_MODE, GL_LINEAR)
         
-        # Set up light
-        glLightfv(GL_LIGHT0, GL_POSITION, (5, 5, 5, 1))
-        glLightfv(GL_LIGHT0, GL_AMBIENT, (0.2, 0.2, 0.2, 1))
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, (0.8, 0.8, 0.8, 1))
+        # Render skybox or background
+        self.render_skybox()
         
+        # Render ground
         self.render_ground()
         
+        # Render opaque objects
+        self.render_cat()
+        self.render_hitbox(self.game.cat_collider)
+        self.game.box.render()
+        
+        # Render 3D text above the box
+        box_position = self.game.box.position
+        text_position = [box_position[0], box_position[1] + self.game.box.size[1] / 2 + 1, box_position[2]]
+        glColor3f(1.0, 1.0, 1.0)
+        self.render_3d_text("Box", text_position)
+        
+        # Disable fog for UI rendering
+        glDisable(GL_FOG)
+        
+        # Render UI
+        self.render_ui()
+
+    def render_skybox(self):
+        glDisable(GL_DEPTH_TEST)
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+        glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
+        glLoadIdentity()
+        glOrtho(-1, 1, -1, 1, -1, 1)
+        
+        glBegin(GL_QUADS)
+        glColor3f(0.5, 0.7, 1.0)  # Light blue color
+        glVertex3f(-1, -1, -0.999)
+        glVertex3f( 1, -1, -0.999)
+        glVertex3f( 1,  1, -0.999)
+        glVertex3f(-1,  1, -0.999)
+        glEnd()
+        
+        glPopMatrix()
+        glMatrixMode(GL_MODELVIEW)
+        glPopMatrix()
+        glEnable(GL_DEPTH_TEST)
+
+    def render_ground(self):
+        glPushMatrix()
+        glTranslatef(0, -0.01, 0)  # Move the ground slightly below 0 to avoid z-fighting
+        
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, self.game.ground_texture)
+        
+        glBegin(GL_QUADS)
+        glColor3f(1.0, 1.0, 1.0)  # Set color to white to show texture properly
+        glTexCoord2f(0, 0); glVertex3f(-self.game.ground_size, 0, -self.game.ground_size)
+        glTexCoord2f(5, 0); glVertex3f(self.game.ground_size, 0, -self.game.ground_size)
+        glTexCoord2f(5, 5); glVertex3f(self.game.ground_size, 0, self.game.ground_size)
+        glTexCoord2f(0, 5); glVertex3f(-self.game.ground_size, 0, self.game.ground_size)
+        glEnd()
+        
+        glDisable(GL_TEXTURE_2D)
+        glPopMatrix()
+
+    def render_cat(self):
         glPushMatrix()
         glTranslatef(*self.game.position)
         glRotatef(self.game.rotation_y, 0, 1, 0)
@@ -37,38 +98,9 @@ class Renderer:
         glRotatef(0, 0, 1, 0)
         scale_factor = self.game.cat_height / 5  # Assuming the model is 5 units tall
         glScalef(scale_factor, scale_factor, scale_factor)
-        glColor3f(0.8, 0.8, 0.8)  # Set color for the cat model
+        glColor3f(1.0, 0.7, 0.3)  # Set a brighter color for the cat model
         self.game.cat.render()
         glPopMatrix()
-
-        # Render cat's hitbox
-        self.render_hitbox(self.game.cat_collider)
-
-        self.game.box.render()
-        
-        # Render 3D text above the box
-        box_position = self.game.box.position
-        text_position = [box_position[0], box_position[1] + self.game.box.size[1] / 2 + 1, box_position[2]]  # 1 meter above the box
-        glColor3f(1.0, 1.0, 1.0)  # White color for the text
-        self.render_3d_text("Box", text_position)
-
-        # Disable lighting for UI rendering
-        glDisable(GL_LIGHTING)
-        self.render_ui()
-
-    def render_ground(self):
-        glBindTexture(GL_TEXTURE_2D, self.game.ground_texture)
-        glEnable(GL_TEXTURE_2D)
-        
-        glBegin(GL_QUADS)
-        glColor3f(0.5, 0.5, 0.5)  # Set a gray color for the ground
-        glTexCoord2f(0, 0); glVertex3f(-self.game.ground_size, 0, -self.game.ground_size)
-        glTexCoord2f(5, 0); glVertex3f(self.game.ground_size, 0, -self.game.ground_size)
-        glTexCoord2f(5, 5); glVertex3f(self.game.ground_size, 0, self.game.ground_size)
-        glTexCoord2f(0, 5); glVertex3f(-self.game.ground_size, 0, self.game.ground_size)
-        glEnd()
-        
-        glDisable(GL_TEXTURE_2D)
 
     def render_ui(self):
         glMatrixMode(GL_PROJECTION)
@@ -228,3 +260,28 @@ class Renderer:
         glEnable(GL_DEPTH_TEST)
         
         glPopMatrix()
+
+    def render_sphere(self, radius):
+        slices = 16
+        stacks = 16
+        
+        for i in range(stacks):
+            lat0 = math.pi * (-0.5 + float(i) / stacks)
+            z0 = math.sin(lat0)
+            zr0 = math.cos(lat0)
+            
+            lat1 = math.pi * (-0.5 + float(i+1) / stacks)
+            z1 = math.sin(lat1)
+            zr1 = math.cos(lat1)
+            
+            glBegin(GL_QUAD_STRIP)
+            for j in range(slices + 1):
+                lng = 2 * math.pi * float(j) / slices
+                x = math.cos(lng)
+                y = math.sin(lng)
+                
+                glNormal3f(x * zr0, y * zr0, z0)
+                glVertex3f(x * zr0 * radius, y * zr0 * radius, z0 * radius)
+                glNormal3f(x * zr1, y * zr1, z1)
+                glVertex3f(x * zr1 * radius, y * zr1 * radius, z1 * radius)
+            glEnd()
