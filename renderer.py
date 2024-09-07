@@ -14,7 +14,16 @@ class Renderer:
         
         self.game.update_camera()
         
-        glColor3f(1.0, 1.0, 1.0)
+        # Enable lighting
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+        glEnable(GL_COLOR_MATERIAL)
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
+        
+        # Set up light
+        glLightfv(GL_LIGHT0, GL_POSITION, (5, 5, 5, 1))
+        glLightfv(GL_LIGHT0, GL_AMBIENT, (0.2, 0.2, 0.2, 1))
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, (0.8, 0.8, 0.8, 1))
         
         self.render_ground()
         
@@ -25,24 +34,34 @@ class Renderer:
             glRotatef(self.game.turn_progress, 0, 1, 0)
         if self.game.is_flipping:
             glRotatef(self.game.flip_rotation, 1, 0, 0)  # Rotation for flip
-        glRotatef(0, 0, 1, 0)  # Change this line from 180 to 0
+        glRotatef(0, 0, 1, 0)
         scale_factor = self.game.cat_height / 5  # Assuming the model is 5 units tall
         glScalef(scale_factor, scale_factor, scale_factor)
+        glColor3f(0.8, 0.8, 0.8)  # Set color for the cat model
         self.game.cat.render()
         glPopMatrix()
 
         # Render cat's hitbox
         self.render_hitbox(self.game.cat_collider)
 
-        self.render_ui()
-
         self.game.box.render()
+        
+        # Render 3D text above the box
+        box_position = self.game.box.position
+        text_position = [box_position[0], box_position[1] + self.game.box.size[1] / 2 + 1, box_position[2]]  # 1 meter above the box
+        glColor3f(1.0, 1.0, 1.0)  # White color for the text
+        self.render_3d_text("Box", text_position)
+
+        # Disable lighting for UI rendering
+        glDisable(GL_LIGHTING)
+        self.render_ui()
 
     def render_ground(self):
         glBindTexture(GL_TEXTURE_2D, self.game.ground_texture)
         glEnable(GL_TEXTURE_2D)
         
         glBegin(GL_QUADS)
+        glColor3f(0.5, 0.5, 0.5)  # Set a gray color for the ground
         glTexCoord2f(0, 0); glVertex3f(-self.game.ground_size, 0, -self.game.ground_size)
         glTexCoord2f(5, 0); glVertex3f(self.game.ground_size, 0, -self.game.ground_size)
         glTexCoord2f(5, 5); glVertex3f(self.game.ground_size, 0, self.game.ground_size)
@@ -170,4 +189,42 @@ class Renderer:
         glEnd()
         
         glDisable(GL_BLEND)
+        glPopMatrix()
+
+    def render_3d_text(self, text, position):
+        glPushMatrix()
+        glTranslatef(*position)
+        
+        # Make text always face the camera
+        modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
+        glLoadIdentity()
+        gluLookAt(modelview[2][0], modelview[2][1], modelview[2][2], 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+        
+        # Render text as a 2D overlay
+        glDisable(GL_DEPTH_TEST)
+        glColor3f(1.0, 1.0, 1.0)  # White color for the text
+        
+        # Create a surface with the text
+        text_surface = self.font.render(text, True, (255, 255, 255, 255))
+        text_data = pygame.image.tostring(text_surface, "RGBA", True)
+        
+        # Generate a new texture
+        text_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, text_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, text_surface.get_width(), text_surface.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, text_data)
+        
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, text_texture)
+        
+        # Draw a quad with the text texture
+        glBegin(GL_QUADS)
+        glTexCoord2f(0, 0); glVertex3f(-0.5, -0.5, 0)
+        glTexCoord2f(1, 0); glVertex3f(0.5, -0.5, 0)
+        glTexCoord2f(1, 1); glVertex3f(0.5, 0.5, 0)
+        glTexCoord2f(0, 1); glVertex3f(-0.5, 0.5, 0)
+        glEnd()
+        
+        glDisable(GL_TEXTURE_2D)
+        glEnable(GL_DEPTH_TEST)
+        
         glPopMatrix()

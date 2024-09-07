@@ -49,8 +49,8 @@ class Game:
         self.ground_texture = self.load_texture('textures/ground.png')
         self.ground_size = 20  # 20 meters square ground
         
-        self.camera_height = 1.5  # Average human eye level (in meters)
-        self.camera_distance = 3  # 3 meters behind the cat
+        self.camera_height = 2.0  # Increased from 1.5 to 2.0 meters
+        self.camera_distance = 4  # Increased from 3 to 4 meters behind the cat
         
         self.camera = Camera(
             initial_position=[0, self.camera_height, self.camera_distance],
@@ -144,6 +144,8 @@ class Game:
                         self.turn_progress = 0
                 elif event.type == pygame.MOUSEMOTION:
                     self.handle_mouse_motion(event)
+                elif event.type == pygame.MOUSEWHEEL:
+                    self.handle_mouse_scroll(event)
 
             while lag >= self.frame_time:
                 keys = pygame.key.get_pressed()
@@ -163,6 +165,9 @@ class Game:
         
         # Reset mouse position to center
         pygame.mouse.set_pos(self.display[0] // 2, self.display[1] // 2)
+
+    def handle_mouse_scroll(self, event):
+        self.camera.handle_mouse_scroll(event.y)
 
     def handle_keys(self, keys, dt):
         rotation_speed = 120 * dt
