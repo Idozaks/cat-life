@@ -12,10 +12,10 @@ class Camera:
         self.sensitivity = sensitivity
         self.zoom_sensitivity = 0.1  # Sensitivity for zoom (scrollwheel)
         self.angle_horizontal = 0
-        self.angle_vertical = 30
-        self.min_vertical_angle = -89  # Prevent looking straight up
+        self.angle_vertical = 60  # Increase this for a more top-down view
+        self.min_vertical_angle = 0  # Prevent looking below horizontal
         self.max_vertical_angle = 89   # Prevent looking straight down
-        self.height_offset = 1.5  # Increased from 0.5 to 1.5 meters above the cat's center
+        self.height_offset = 2.0  # Increase height offset for a higher view
 
     def update(self, target_position, cat_collider):
         self.target = list(target_position)
