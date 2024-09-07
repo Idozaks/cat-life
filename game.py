@@ -77,10 +77,10 @@ class Game:
 
         self.is_flipping = False
         self.flip_progress = 0
-        self.flip_height = 6.0
+        self.flip_height = 1.5  # Reduced from 6.0 to 1.5 meters
         self.flip_start_y = 0
         self.flip_rotation = 0
-        self.flip_duration = 0.8
+        self.flip_duration = 0.6  # Reduced from 0.8 to 0.6 seconds
         self.flip_timer = 0
         self.flip_direction = 1
 
@@ -261,9 +261,9 @@ class Game:
 
         if not self.jump_mechanics.is_jumping and not self.is_flipping:
             if keys[pygame.K_f]:
-                self.start_flip(1)
+                self.start_flip(-1)  # Changed from 1 to -1 for back flip
             elif keys[pygame.K_b]:
-                self.start_flip(-1)
+                self.start_flip(1)   # Changed from -1 to 1 for front flip
 
         if self.is_flipping:
             self.flip_timer += dt
