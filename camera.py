@@ -8,14 +8,14 @@ class Camera:
         self.target = list(initial_target)
         self.distance = distance
         self.min_distance = 2.0  # Minimum camera distance
-        self.max_distance = 10.0  # Maximum camera distance
+        self.max_distance = 20.0  # Increased maximum camera distance
         self.sensitivity = sensitivity
         self.zoom_sensitivity = 0.1  # Sensitivity for zoom (scrollwheel)
         self.angle_horizontal = 0
-        self.angle_vertical = 60  # Increase this for a more top-down view
-        self.min_vertical_angle = 0  # Prevent looking below horizontal
-        self.max_vertical_angle = 89   # Prevent looking straight down
-        self.height_offset = 2.0  # Increase height offset for a higher view
+        self.angle_vertical = 30  # Decrease this for a less top-down view
+        self.min_vertical_angle = -20  # Allow looking slightly upwards
+        self.max_vertical_angle = 60   # Reduce maximum downward angle
+        self.height_offset = 1.0  # Decrease height offset for a lower view
 
     def update(self, target_position, cat_collider):
         self.target = list(target_position)

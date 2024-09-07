@@ -35,9 +35,9 @@ class Game:
         self.rotation_y = 45
         self.position = [0, self.cat_height / 2, 0]  # Start with cat's feet on the ground
         self.initial_y = self.position[1]
-        self.base_speed = 1.0  # 1 m/s, average walking speed for a cat
+        self.base_speed = 2.0  # Doubled from 1.0 to 2.0 m/s
         self.current_speed = self.base_speed
-        self.max_speed = self.base_speed * 3  # 3 m/s, fast running speed for a cat
+        self.max_speed = self.base_speed * 3  # Now 6.0 m/s (doubled from previous max of 3.0 m/s)
         
         self.base_turn_speed = 2  # Increase this value for faster base turning
         self.max_turn_speed = self.base_turn_speed * 3  # Adjusted to be 3 times the base turn speed
@@ -52,12 +52,12 @@ class Game:
         self.camera_height = 2.0  # Increased from 1.5 to 2.0 meters
         self.camera_distance = 4  # Increased from 3 to 4 meters behind the cat
         
-        self.camera = Camera(
-            initial_position=[0, self.camera_height, self.camera_distance],
-            initial_target=self.position,
-            distance=self.camera_distance,
-            sensitivity=0.1
-        )
+        initial_position = (0, 0, 0)  # Adjust as needed
+        initial_target = (0, 0, 0)    # Adjust as needed
+        initial_distance = 10.0       # Double the original distance
+        sensitivity = 0.1             # Adjust as needed
+        
+        self.camera = Camera(initial_position, initial_target, initial_distance, sensitivity)
 
         self.jump_height = 1.0  # 1 meter jump height
         self.max_jump_height = 1.5  # 1.5 meters max jump height
