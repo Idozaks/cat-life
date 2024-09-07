@@ -19,7 +19,7 @@ class Renderer:
         
         # Render opaque objects
         self.render_cat()
-        self.render_hitbox(self.game.cat_collider)
+        self.render_hitbox(self.game.cat.collider)  # Changed from self.game.cat_collider to self.game.cat.collider
         self.game.box.render()
 
     def render_ground(self):
@@ -42,17 +42,14 @@ class Renderer:
 
     def render_cat(self):
         glPushMatrix()
-        glTranslatef(*self.game.position)
-        glRotatef(self.game.rotation_y, 0, 1, 0)
-        if self.game.is_turning:
-            glRotatef(self.game.turn_progress, 0, 1, 0)
-        if self.game.is_flipping:
-            glRotatef(self.game.flip_rotation, 1, 0, 0)  # Rotation for flip
-        glRotatef(0, 0, 1, 0)
-        scale_factor = self.game.cat_height / 5  # Assuming the model is 5 units tall
-        glScalef(scale_factor, scale_factor, scale_factor)
-        glColor3f(1.0, 0.7, 0.3)  # Set a brighter color for the cat model
-        self.game.cat.render()
+        glTranslatef(*self.game.cat.position)  # Use cat's position instead of game's position
+        glRotatef(self.game.cat.rotation_y, 0, 1, 0)  # Use cat's rotation
+        
+        if self.game.cat.is_flipping:
+            glRotatef(self.game.cat.flip_rotation, 1, 0, 0)  # Apply flip rotation around x-axis
+        
+        glScalef(0.0833, 0.0833, 0.0833)  # 0.25/3 ≈ 0.0833
+        glCallList(self.game.cat.cat.gl_list)
         glPopMatrix()
 
     def render_hitbox(self, box):
